@@ -67,7 +67,8 @@ class Place(object):
         if insect.is_ant:
             # Special handling for QueenAnt
             # BEGIN Problem 13
-            "*** YOUR CODE HERE ***"
+            if isinstance(insect, QueenAnt) and insect.is_impostor is False:
+                return
             # END Problem 13
 
             # Special handling for BodyguardAnt
@@ -95,6 +96,7 @@ class Insect(object):
 
     is_ant = False
     damage = 0
+    watersafe = False
 
     def __init__(self, armor, place=None):
         """Create an Insect with an ARMOR amount and a starting PLACE."""
@@ -130,6 +132,7 @@ class Bee(Insect):
 
     name = 'Bee'
     damage = 1
+    watersafe = True
 
     def sting(self, ant):
         """Attack an ANT, reducing its armor by 1."""
@@ -254,7 +257,9 @@ class Water(Place):
     def add_insect(self, insect):
         """Add INSECT if it is watersafe, otherwise reduce its armor to 0."""
         # BEGIN Problem 11
-        "*** YOUR CODE HERE ***"
+        Place.add_insect(self, insect)
+        if insect.watersafe is False:
+            insect.reduce_armor(insect.armor)
         # END Problem 11
 
 
@@ -345,6 +350,11 @@ class NinjaAnt(Ant):
 
 # BEGIN Problem 12
 # The ScubaThrower class
+class ScubaThrower(ThrowerAnt):
+    name = 'Scuba'
+    food_cost = 6
+    watersafe = True
+    implemented = True
 # END Problem 12
 
 
@@ -428,19 +438,42 @@ class TankAnt(BodyguardAnt):
         # END Problem 10
 
 # BEGIN Problem 13
-class QueenAnt(Ant):  # You should change this line
+class QueenAnt(ScubaThrower):  # You should change this line
 # END Problem 13
     """The Queen of the colony. The game is over if a bee enters her place."""
 
     name = 'Queen'
     # BEGIN Problem 13
-    implemented = False   # Change to True to view in the GUI
+    food_cost = 7
+    is_first_instantiated = True
+    implemented = True   # Change to True to view in the GUI
+    doubled_damage_ants = []
     # END Problem 13
 
     def __init__(self):
         # BEGIN Problem 13
-        "*** YOUR CODE HERE ***"
+        ScubaThrower.__init__(self, armor=1)
+        if QueenAnt.is_first_instantiated:
+            self.is_impostor = False
+            QueenAnt.is_first_instantiated = False
+        else:
+            self.is_impostor = True
         # END Problem 13
+
+    def double_damage(self):
+        exit = self.place
+        while True:
+            if exit is None:
+                return
+            if exit.ant and isinstance(exit.ant, QueenAnt) is False:
+                if exit.ant not in QueenAnt.doubled_damage_ants:
+                    exit.ant.damage *= 2
+                    QueenAnt.doubled_damage_ants.append(exit.ant)
+                if isinstance(exit.ant, BodyguardAnt) and exit.ant.ant and isinstance(exit.ant.ant, QueenAnt) is False:
+                    if exit.ant.ant not in QueenAnt.doubled_damage_ants:
+                        exit.ant.ant.damage *= 2
+                        QueenAnt.doubled_damage_ants.append(exit.ant.ant)
+            exit = exit.exit
 
     def action(self, colony):
         """A queen ant throws a leaf, but also doubles the damage of ants
@@ -449,7 +482,11 @@ class QueenAnt(Ant):  # You should change this line
         Impostor queens do only one thing: reduce their own armor to 0.
         """
         # BEGIN Problem 13
-        "*** YOUR CODE HERE ***"
+        if self.is_impostor:
+            self.reduce_armor(self.armor)
+        else:
+            ScubaThrower.action(self, colony)
+            self.double_damage()
         # END Problem 13
 
     def reduce_armor(self, amount):
@@ -457,7 +494,10 @@ class QueenAnt(Ant):  # You should change this line
         remaining, signal the end of the game.
         """
         # BEGIN Problem 13
-        "*** YOUR CODE HERE ***"
+        if self.is_impostor is False and amount >= self.armor:
+            bees_win()
+        else:
+            ScubaThrower.reduce_armor(self, amount)
         # END Problem 13
 
 class AntRemover(Ant):
