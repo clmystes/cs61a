@@ -145,7 +145,15 @@ def read_tail(src):
             # END PROBLEM 1
         elif src.current() == '.':
             # BEGIN PROBLEM 2
-            "*** YOUR CODE HERE ***"
+            src.remove_front()
+            val = scheme_read(src)
+            if src.current() == ')':
+                src.remove_front()
+            else:
+                raise SyntaxError(
+                    'A dotted pair must have exactly one item after the dot.'
+                )
+            return val
             # END PROBLEM 2
         else:
             # BEGIN PROBLEM 1
