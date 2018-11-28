@@ -31,7 +31,12 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
         return SPECIAL_FORMS[first](rest, env)
     else:
         # BEGIN PROBLEM 5
-        "*** YOUR CODE HERE ***"
+        try:
+            operator = env.bindings[first]
+        except (KeyError, TypeError):
+            raise SchemeError('the provided argument is not a Scheme procedure.')
+        scheme_eval_with_env = lambda expr: scheme_eval(expr, env)
+        return scheme_apply(operator, rest.map(scheme_eval_with_env), env)
         # END PROBLEM 5
 
 def self_evaluating(expr):
@@ -76,15 +81,19 @@ class Frame:
     def define(self, symbol, value):
         """Define Scheme SYMBOL to have VALUE."""
         # BEGIN PROBLEM 3
-        "*** YOUR CODE HERE ***"
+        self.bindings[symbol] = value
         # END PROBLEM 3
 
     def lookup(self, symbol):
         """Return the value bound to SYMBOL. Errors if SYMBOL is not found."""
         # BEGIN PROBLEM 3
-        "*** YOUR CODE HERE ***"
+        if symbol in self.bindings:
+            return self.bindings[symbol]
+        if self.parent is not None:
+            return self.parent.lookup(symbol)
+        else:
         # END PROBLEM 3
-        raise SchemeError('unknown identifier: {0}'.format(symbol))
+            raise SchemeError('unknown identifier: {0}'.format(symbol))
 
     def make_child_frame(self, formals, vals):
         """Return a new local frame whose parent is SELF, in which the symbols
@@ -141,7 +150,11 @@ class PrimitiveProcedure(Procedure):
             python_args.append(args.first)
             args = args.second
         # BEGIN PROBLEM 4
-        "*** YOUR CODE HERE ***"
+        if self.use_env: python_args.append(env)
+        try:
+            return self.fn(*tuple(python_args))
+        except TypeError:
+            raise SchemeError('wrong number of arguments were passed.')
         # END PROBLEM 4
 
 class LambdaProcedure(Procedure):
@@ -199,7 +212,8 @@ def do_define_form(expressions, env):
     if scheme_symbolp(target):
         check_form(expressions, 2, 2)
         # BEGIN PROBLEM 6
-        "*** YOUR CODE HERE ***"
+        env.define(target, scheme_eval(expressions.second.first, env))
+        return target
         # END PROBLEM 6
     elif isinstance(target, Pair) and scheme_symbolp(target.first):
         # BEGIN PROBLEM 10
