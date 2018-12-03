@@ -57,7 +57,13 @@ def eval_all(expressions, env):
     """Evaluate each expression im the Scheme list EXPRESSIONS in
     environment ENV and return the value of the last."""
     # BEGIN PROBLEM 8
-    return scheme_eval(expressions.first, env)
+    if expressions is nil:
+        return None
+    # every item must be evaluated
+    val = scheme_eval(expressions.first, env)
+    if expressions.second is nil:
+        return val
+    return eval_all(expressions.second, env)
     # END PROBLEM 8
 
 ################
@@ -217,8 +223,9 @@ def do_define_form(expressions, env):
         # END PROBLEM 6
     elif isinstance(target, Pair) and scheme_symbolp(target.first):
         # BEGIN PROBLEM 10
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 10
+        env.define(target.first, LambdaProcedure(target.second, expressions.second, env))
+        return target.first
+    # END PROBLEM 10
     else:
         bad_target = target.first if isinstance(target, Pair) else target
         raise SchemeError('non-symbol: {0}'.format(bad_target))
@@ -227,7 +234,7 @@ def do_quote_form(expressions, env):
     """Evaluate a quote form."""
     check_form(expressions, 1, 1)
     # BEGIN PROBLEM 7
-    "*** YOUR CODE HERE ***"
+    return expressions.first
     # END PROBLEM 7
 
 def do_begin_form(expressions, env):
@@ -241,7 +248,8 @@ def do_lambda_form(expressions, env):
     formals = expressions.first
     check_formals(formals)
     # BEGIN PROBLEM 9
-    "*** YOUR CODE HERE ***"
+    body = expressions.second
+    return LambdaProcedure(formals, body, env)
     # END PROBLEM 9
 
 def do_if_form(expressions, env):
