@@ -31,10 +31,8 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
         return SPECIAL_FORMS[first](rest, env)
     else:
         # BEGIN PROBLEM 5
-        try:
-            operator = env.bindings[first]
-        except (KeyError, TypeError):
-            raise SchemeError('the provided argument is not a Scheme procedure.')
+        operator = scheme_eval(first, env)
+        check_procedure(operator)
         scheme_eval_with_env = lambda expr: scheme_eval(expr, env)
         return scheme_apply(operator, rest.map(scheme_eval_with_env), env)
         # END PROBLEM 5
@@ -114,7 +112,12 @@ class Frame:
         """
         child = Frame(self) # Create a new child with self as the parent
         # BEGIN PROBLEM 11
-        "*** YOUR CODE HERE ***"
+        if len(formals) != len(vals):
+            raise SchemeError('the number of argument values does not match with the number of formal parameters')
+        while formals is not nil:
+            child.define(formals.first, vals.first)
+            formals = formals.second
+            vals = vals.second
         # END PROBLEM 11
         return child
 
@@ -177,7 +180,7 @@ class LambdaProcedure(Procedure):
         """Make a frame that binds my formal parameters to ARGS, a Scheme list
         of values, for a lexically-scoped call evaluated in environment ENV."""
         # BEGIN PROBLEM 12
-        "*** YOUR CODE HERE ***"
+        return self.env.make_child_frame(self.formals, args)
         # END PROBLEM 12
 
     def __str__(self):
@@ -263,13 +266,29 @@ def do_if_form(expressions, env):
 def do_and_form(expressions, env):
     """Evaluate a (short-circuited) and form."""
     # BEGIN PROBLEM 13
-    "*** YOUR CODE HERE ***"
+    if expressions is nil:
+        return True
+    first = scheme_eval(expressions.first, env)
+    if expressions.second is nil:
+        return first
+    if scheme_truep(first):
+        return do_and_form(expressions.second, env)
+    else:
+        return False
     # END PROBLEM 13
 
 def do_or_form(expressions, env):
     """Evaluate a (short-circuited) or form."""
     # BEGIN PROBLEM 13
-    "*** YOUR CODE HERE ***"
+    if expressions is nil:
+        return False
+    first = scheme_eval(expressions.first, env)
+    if expressions.second is nil:
+        return first
+    if scheme_truep(first):
+        return first
+    else:
+        return do_or_form(expressions.second, env)
     # END PROBLEM 13
 
 def do_cond_form(expressions, env):
@@ -285,7 +304,11 @@ def do_cond_form(expressions, env):
             test = scheme_eval(clause.first, env)
         if scheme_truep(test):
             # BEGIN PROBLEM 14
-            "*** YOUR CODE HERE ***"
+            result = expressions.first.second
+            if result is nil:
+                return test
+            else:
+                return eval_all(result, env)
             # END PROBLEM 14
         expressions = expressions.second
 
