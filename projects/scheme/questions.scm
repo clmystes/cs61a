@@ -6,25 +6,36 @@
 ; Some utility functions that you may find useful to implement.
 
 (define (cons-all first rests)
-  'replace-this-line)
+  (define (proc item)
+    (cons first item))
+  (map proc rests))
 
 (define (zip pairs)
-  'replace-this-line)
+  (list (map car pairs) (map cadr pairs)))
 
 ;; Problem 17
 ;; Returns a list of two-element lists
 (define (enumerate s)
   ; BEGIN PROBLEM 17
-  'replace-this-line
-  )
+  (define (help s n)
+    (if (null? s)
+      s
+      (cons (list n (car s)) (help (cdr s) (+ n 1)))))
+  (help s 0))
   ; END PROBLEM 17
 
 ;; Problem 18
 ;; List all ways to make change for TOTAL with DENOMS
 (define (list-change total denoms)
   ; BEGIN PROBLEM 18
-  'replace-this-line
-  )
+  (cond
+    ((null? denoms) nil)
+    ((= total 0) (cons nil nil))
+    ((> (car denoms) total) (list-change total (cdr denoms)))
+    (else
+      (define with_car (list-change (- total (car denoms)) denoms))
+      (define without_car (list-change total (cdr denoms)))
+      (append (cons-all (car denoms) with_car) without_car))))
   ; END PROBLEM 18
 
 ;; Problem 19
@@ -41,12 +52,12 @@
 (define (let-to-lambda expr)
   (cond ((atom? expr)
          ; BEGIN PROBLEM 19
-         'replace-this-line
+         expr
          ; END PROBLEM 19
          )
         ((quoted? expr)
          ; BEGIN PROBLEM 19
-         'replace-this-line
+         expr
          ; END PROBLEM 19
          )
         ((or (lambda? expr)
@@ -55,18 +66,18 @@
                (params (cadr expr))
                (body   (cddr expr)))
            ; BEGIN PROBLEM 19
-           'replace-this-line
+           (cons form (cons params (map let-to-lambda body)))
            ; END PROBLEM 19
            ))
         ((let? expr)
          (let ((values (cadr expr))
                (body   (cddr expr)))
            ; BEGIN PROBLEM 19
-           'replace-this-line
+           (append (cons (cons 'lambda (cons (car (zip values)) (map let-to-lambda body))) nil) (map let-to-lambda (cadr (zip values))))
            ; END PROBLEM 19
            ))
         (else
          ; BEGIN PROBLEM 19
-         'replace-this-line
+         (cons (car expr) (map let-to-lambda (cdr expr)))
          ; END PROBLEM 19
          )))
