@@ -1,3 +1,3 @@
 # cs61a
 
-my solutions
+Complete all labs and projects.
